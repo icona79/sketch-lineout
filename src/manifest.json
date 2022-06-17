@@ -1,0 +1,23 @@
+{
+    "compatibleVersion": 3,
+    "bundleVersion": 1,
+    "commands": [
+        {
+            "name": "🎆 Images Assets Manager",
+            "identifier": "img-script",
+            "script": "./script.js",
+            "handlers": {
+                "run": "onRun",
+                "actions": {
+                    "Shutdown": "onShutdown"
+                }
+            }
+        }
+    ],
+    "menu": {
+        "title": "sketch-image-assets-manager",
+        "items": ["img-script"],
+        "isRoot": true
+    },
+    "icon": "icon.png"
+}
