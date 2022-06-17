@@ -1,4 +1,4 @@
-# Sketch images asstes manager
+# Sketch images assets manager
 
 The plugin exports all the images available into your document (`images`, `fills images`, `symbol and symbol instances images`).
 All the images are automatically added to a new page called `Exportable Assets` and set as exportable.
