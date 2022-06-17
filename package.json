@@ -1,7 +1,7 @@
 {
     "name": "sketch-image-assets-manager",
     "description": "Prepare all your image asstes in an artboard, ready to be exported",
-    "version": "0.0.1",
+    "version": "1.0.0",
     "engines": {
         "sketch": ">=3.0"
     },
