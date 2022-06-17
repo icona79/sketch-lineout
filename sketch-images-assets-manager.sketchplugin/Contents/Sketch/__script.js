@@ -871,10 +871,13 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
 
 var sketch = __webpack_require__(/*! sketch */ "sketch");
 
+var identifier = __command.identifier();
+
 
 
 var DataSupplier = __webpack_require__(/*! sketch/data-supplier */ "sketch/data-supplier");
 
+var doc = context.document;
 var document = sketch.getSelectedDocument();
 var selectedItem = document.selectedLayers.layers[0];
 var documentName = "data";
@@ -899,6 +902,7 @@ var sketchDir = path.join(os.homedir(), "Library/Application Support/com.bohemia
 
 var imagesFolder = desktopDir + "/Images-" + normalizePaths(documentName);
 createFolder(imagesFolder);
+var assetsPageName = "Exportable Assets";
 var exportOptions = {
   formats: "png",
   overwriting: true,
@@ -911,74 +915,22 @@ var exportOptions = {
   var layersSymbolInstances = sketch.find("SymbolInstance");
   var layersSymbols = document.getSymbols();
   var layersImages = sketch.find("Image");
-  layersShapes.forEach(function (layer) {
-    if (layer.style.fills.length > 0) {
-      var _layer$style;
 
-      var imageFill = (_layer$style = layer.style) === null || _layer$style === void 0 ? void 0 : _layer$style.fills.reduce(function (prev, curr) {
-        if (curr.fillType !== "Pattern") return prev;
-        return curr.pattern.image;
-      }, null);
+  if (identifier == "img-script-shapepath" || identifier == "img-script-all") {
+    layersShapes.forEach(function (layer) {
+      if (layer.style.fills.length > 0) {
+        var _layer$style;
 
-      if (imageFill) {
-        var key = String(imageFill);
-        var imageObj = {};
-        imageObj["name"] = layer.name + "-" + key;
-        imageObj["layer"] = imageFill;
-        imageObj["parent"] = documentName;
+        var imageFill = (_layer$style = layer.style) === null || _layer$style === void 0 ? void 0 : _layer$style.fills.reduce(function (prev, curr) {
+          if (curr.fillType !== "Pattern") return prev;
+          return curr.pattern.image;
+        }, null);
 
-        if (!images[key]) {
-          images[key] = imageObj;
-        }
-      }
-    }
-  });
-  layersImages.forEach(function (layer) {
-    var key = String(layer.image.id);
-    var imageObj = {};
-    imageObj["name"] = normalizePaths(layer.name) + "-" + key;
-    imageObj["layer"] = layer.image;
-    imageObj["parent"] = documentName;
-
-    if (!images[key]) {
-      images[key] = imageObj;
-    }
-  });
-  layersSymbols.forEach(function (layer) {
-    var overrides = layer.overrides.filter(function (o) {
-      return (// o.editable &&
-        ["symbolID", "stringValue", "image"].includes(o.property)
-      );
-    });
-    var dataGroupByPath = {
-      "": data
-    };
-
-    var _iterator = _createForOfIteratorHelper(overrides),
-        _step;
-
-    try {
-      for (_iterator.s(); !(_step = _iterator.n()).done;) {
-        var o = _step.value;
-        var pathComponents = o.path.split("/");
-        pathComponents.pop();
-        var parentPath = pathComponents.join("/");
-
-        if (o.property == "symbolID") {
-          dataGroupByPath[o.path] = {};
-
-          if (dataGroupByPath[parentPath]) {
-            dataGroupByPath[parentPath][o.affectedLayer.name] = dataGroupByPath[o.path];
-          }
-
-          continue;
-        }
-
-        if (o.property == "image") {
-          var key = String(o.value.id);
+        if (imageFill) {
+          var key = String(imageFill);
           var imageObj = {};
-          imageObj["name"] = normalizePaths(o.affectedLayer.name) + "-" + key;
-          imageObj["layer"] = o.value;
+          imageObj["name"] = layer.name + "-" + key;
+          imageObj["layer"] = imageFill;
           imageObj["parent"] = documentName;
 
           if (!images[key]) {
@@ -986,64 +938,137 @@ var exportOptions = {
           }
         }
       }
-    } catch (err) {
-      _iterator.e(err);
-    } finally {
-      _iterator.f();
-    }
-  });
-  layersSymbolInstances.forEach(function (layer) {
-    var overrides = layer.overrides.filter(function (o) {
-      return (// o.editable &&
-        ["symbolID", "stringValue", "image"].includes(o.property)
-      );
     });
-    var dataGroupByPath = {
-      "": data
-    };
+    assetsPageName += " from Layers";
+  }
 
-    var _iterator2 = _createForOfIteratorHelper(overrides),
-        _step2;
+  if (identifier == "img-script-images" || identifier == "img-script-all") {
+    layersImages.forEach(function (layer) {
+      var key = String(layer.image.id);
+      var imageObj = {};
+      imageObj["name"] = normalizePaths(layer.name) + "-" + key;
+      imageObj["layer"] = layer.image;
+      imageObj["parent"] = documentName;
 
-    try {
-      for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
-        var o = _step2.value;
-        var pathComponents = o.path.split("/");
-        pathComponents.pop();
-        var parentPath = pathComponents.join("/");
-
-        if (o.property == "symbolID") {
-          dataGroupByPath[o.path] = {};
-
-          if (dataGroupByPath[parentPath]) {
-            dataGroupByPath[parentPath][o.affectedLayer.name] = dataGroupByPath[o.path];
-          }
-
-          continue;
-        }
-
-        if (o.property == "image") {
-          var key = String(o.value.id);
-          var imageObj = {};
-          imageObj["name"] = normalizePaths(o.affectedLayer.name) + "-" + key;
-          imageObj["layer"] = o.value;
-          imageObj["parent"] = documentName;
-
-          if (!images[key]) {
-            images[key] = imageObj;
-          }
-        }
+      if (!images[key]) {
+        images[key] = imageObj;
       }
-    } catch (err) {
-      _iterator2.e(err);
-    } finally {
-      _iterator2.f();
-    }
-  });
+    });
+    assetsPageName += " from Images";
+  }
+
+  if (identifier == "img-script-symbols" || identifier == "img-script-all") {
+    layersSymbols.forEach(function (layer) {
+      var overrides = layer.overrides.filter(function (o) {
+        return (// o.editable &&
+          ["symbolID", "stringValue", "image"].includes(o.property)
+        );
+      });
+      var dataGroupByPath = {
+        "": data
+      };
+
+      var _iterator = _createForOfIteratorHelper(overrides),
+          _step;
+
+      try {
+        for (_iterator.s(); !(_step = _iterator.n()).done;) {
+          var o = _step.value;
+          var pathComponents = o.path.split("/");
+          pathComponents.pop();
+          var parentPath = pathComponents.join("/");
+
+          if (o.property == "symbolID") {
+            dataGroupByPath[o.path] = {};
+
+            if (dataGroupByPath[parentPath]) {
+              dataGroupByPath[parentPath][o.affectedLayer.name] = dataGroupByPath[o.path];
+            }
+
+            continue;
+          }
+
+          if (o.property == "image") {
+            var key = String(o.value.id);
+            var imageObj = {};
+            imageObj["name"] = normalizePaths(o.affectedLayer.name) + "-" + key;
+            imageObj["layer"] = o.value;
+            imageObj["parent"] = documentName;
+
+            if (!images[key]) {
+              images[key] = imageObj;
+            }
+          }
+        }
+      } catch (err) {
+        _iterator.e(err);
+      } finally {
+        _iterator.f();
+      }
+    });
+    assetsPageName += " from Source Symbols";
+  }
+
+  if (identifier == "img-script-instances" || identifier == "img-script-all") {
+    layersSymbolInstances.forEach(function (layer) {
+      var overrides = layer.overrides.filter(function (o) {
+        return (// o.editable &&
+          ["symbolID", "stringValue", "image"].includes(o.property)
+        );
+      });
+      var dataGroupByPath = {
+        "": data
+      };
+
+      var _iterator2 = _createForOfIteratorHelper(overrides),
+          _step2;
+
+      try {
+        for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+          var o = _step2.value;
+          var pathComponents = o.path.split("/");
+          pathComponents.pop();
+          var parentPath = pathComponents.join("/");
+
+          if (o.property == "symbolID") {
+            dataGroupByPath[o.path] = {};
+
+            if (dataGroupByPath[parentPath]) {
+              dataGroupByPath[parentPath][o.affectedLayer.name] = dataGroupByPath[o.path];
+            }
+
+            continue;
+          }
+
+          if (o.property == "image") {
+            var key = String(o.value.id);
+            var imageObj = {};
+            imageObj["name"] = normalizePaths(o.affectedLayer.name) + "-" + key;
+            imageObj["layer"] = o.value;
+            imageObj["parent"] = documentName;
+
+            if (!images[key]) {
+              images[key] = imageObj;
+            }
+          }
+        }
+      } catch (err) {
+        _iterator2.e(err);
+      } finally {
+        _iterator2.f();
+      }
+    });
+    assetsPageName += " from Overrides";
+  }
+
+  if (identifier == "img-script-all") {
+    assetsPageName += " from all Layers";
+  }
+
   var imagesData = Object.values(images);
 
   if (imagesData.length > 0) {
-    var assetsPage = "Exportable Assets";
+    var assetsPage = assetsPageName;
     var page = selectPage(findOrCreatePage(document, assetsPage));
     var posX = 0;
     var posY = 0;
@@ -1061,7 +1086,6 @@ var exportOptions = {
         parent: document.selectedPage
       });
       imgLayer.resizeToOriginalSize();
-      console.log(imgLayer.exportFormats);
       imgLayer.exportFormats = [{
         type: "ExportFormat",
         fileFormat: "png",
@@ -1088,6 +1112,10 @@ var exportOptions = {
         suffix: "",
         size: "1x"
       }];
+      var imgArtboard = createArtboard(document.selectedPage, posX, posY, imgLayer.frame.width, imgLayer.frame.height, imgLayer.name);
+      imgLayer.parent = imgArtboard;
+      imgLayer.frame.x = 0;
+      imgLayer.frame.y = 0;
       document.centerOnLayer(imgLayer);
     });
     organizeLayersInPage(document.selectedPage);
@@ -1097,12 +1125,28 @@ var exportOptions = {
     curScroll.x = 0;
     curScroll.y = 0;
     drawView.setScrollOrigin(curScroll);
+    sketch.UI.alert("Images asset extraction complete", "You can find your image assets in your Desktop, in a folder named " + "Images-" + normalizePaths(documentName) + "\n\n" + "All the images are available into the page Exportable Assets");
+  } else {
+    sketch.UI.alert("No Image assets found", "There are no images of the type you selected into your document");
   }
-
-  sketch.UI.alert("Images asset extraction complete", "You can find your image assets in your Desktop, in a folder named" + "Images-" + normalizePaths(documentName) + "\n\n" + "All the images are available into the page Exportable Assets");
 }); // **************************************
 // Script functions
 // **************************************
+
+function createArtboard(parentLayer, x, y, width, height, name) {
+  var Artboard = sketch.Artboard;
+  var artboard = new Artboard({
+    name: name,
+    parent: parentLayer,
+    frame: {
+      x: x,
+      y: y,
+      width: width,
+      height: height
+    }
+  });
+  return artboard;
+}
 
 function createFolder(folder) {
   try {
@@ -1280,6 +1324,14 @@ module.exports = require("util");
     }
   }
 }
+globalThis['onRun'] = __skpm_run.bind(this, 'default');
+globalThis['onShutdown'] = __skpm_run.bind(this, 'onShutdown');
+globalThis['onRun'] = __skpm_run.bind(this, 'default');
+globalThis['onShutdown'] = __skpm_run.bind(this, 'onShutdown');
+globalThis['onRun'] = __skpm_run.bind(this, 'default');
+globalThis['onShutdown'] = __skpm_run.bind(this, 'onShutdown');
+globalThis['onRun'] = __skpm_run.bind(this, 'default');
+globalThis['onShutdown'] = __skpm_run.bind(this, 'onShutdown');
 globalThis['onRun'] = __skpm_run.bind(this, 'default');
 globalThis['onShutdown'] = __skpm_run.bind(this, 'onShutdown')
 

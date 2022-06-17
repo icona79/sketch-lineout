@@ -3,8 +3,52 @@
     "bundleVersion": 1,
     "commands": [
         {
-            "name": "🎆 Images Assets Manager",
-            "identifier": "img-script",
+            "name": "All images",
+            "identifier": "img-script-all",
+            "script": "./script.js",
+            "handlers": {
+                "run": "onRun",
+                "actions": {
+                    "Shutdown": "onShutdown"
+                }
+            }
+        },
+        {
+            "name": "All images from overrides",
+            "identifier": "img-script-instances",
+            "script": "./script.js",
+            "handlers": {
+                "run": "onRun",
+                "actions": {
+                    "Shutdown": "onShutdown"
+                }
+            }
+        },
+        {
+            "name": "All images from layer fills",
+            "identifier": "img-script-shapepath",
+            "script": "./script.js",
+            "handlers": {
+                "run": "onRun",
+                "actions": {
+                    "Shutdown": "onShutdown"
+                }
+            }
+        },
+        {
+            "name": "All images from image layers",
+            "identifier": "img-script-images",
+            "script": "./script.js",
+            "handlers": {
+                "run": "onRun",
+                "actions": {
+                    "Shutdown": "onShutdown"
+                }
+            }
+        },
+        {
+            "name": "All images from source symbols",
+            "identifier": "img-script-symbols",
             "script": "./script.js",
             "handlers": {
                 "run": "onRun",
@@ -15,9 +59,14 @@
         }
     ],
     "menu": {
-        "title": "sketch-image-assets-manager",
-        "items": ["img-script"],
-        "isRoot": true
+        "title": "🎆  Sketch Assets Manager",
+        "items": [
+            "img-script-all",
+            "img-script-instances",
+            "img-script-shapepath",
+            "img-script-images",
+            "img-script-symbols"
+        ]
     },
     "icon": "icon.png"
 }
