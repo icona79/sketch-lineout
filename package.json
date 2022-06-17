@@ -40,5 +40,9 @@
         "sketch-module-web-view": "^3.1.4",
         "sort-object": "^3.0.3"
     },
-    "author": "Matteo Gratton <icona79@gmail.com>"
+    "author": "Matteo Gratton <icona79@gmail.com>",
+    "repository": {
+        "type": "git",
+        "url": "ttps://github.com/icona79/sketch-images-assets-manager.git"
+    }
 }
