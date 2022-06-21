@@ -1,6 +1,8 @@
 var sketch = require("sketch");
 var identifier = __command.identifier();
 import { Page } from "sketch/dom";
+var Style = require("sketch/dom").Style;
+var Flow = require("sketch/dom").Flow;
 var DataSupplier = require("sketch/data-supplier");
 var doc = context.document;
 var document = sketch.getSelectedDocument();
@@ -13,250 +15,102 @@ if (document.path) {
 }
 
 var { isNativeObject } = require("util");
-const fs = require("@skpm/fs");
-const os = require("os");
-const path = require("path");
-const desktopDir = path.join(os.homedir(), "Desktop");
-const sketchDir = path.join(
-    os.homedir(),
-    "Library/Application Support/com.bohemiancoding.sketch3"
-);
 
-// Setup the folder structure to export our data
-const imagesFolder = desktopDir + "/Images-" + normalizePaths(documentName);
-
-createFolder(imagesFolder);
-
-var assetsPageName = "Exportable Assets";
-
-const exportOptions = {
-    formats: "png",
-    overwriting: true,
-    output: imagesFolder,
-};
+var lineoutPageName = "Lineouts";
+var linesColor = "#FF0000";
 
 export default function () {
-    let data = {};
-    let images = {};
-
-    let layersShapes = sketch.find("ShapePath");
-    let layersSymbolInstances = sketch.find("SymbolInstance");
-    let layersSymbols = document.getSymbols();
-    let layersImages = sketch.find("Image");
-
+    let selectedArtboard = document.selectedLayers.layers[0];
     if (
-        identifier == "img-script-shapepath" ||
-        identifier == "img-script-all"
+        document.selectedLayers.length == 1 &&
+        (document.selectedLayers.layers[0].type === "Artboard" ||
+            document.selectedLayers.layers[0].type === "SymbolMaster")
     ) {
-        layersShapes.forEach((layer) => {
-            if (layer.style.fills.length > 0) {
-                var imageFill = layer.style?.fills.reduce((prev, curr) => {
-                    if (curr.fillType !== "Pattern") return prev;
-                    return curr.pattern.image;
-                }, null);
-                if (imageFill) {
-                    var key = String(imageFill);
-                    let imageObj = {};
-                    imageObj["name"] = layer.name + "-" + key;
-                    imageObj["layer"] = imageFill;
-                    imageObj["parent"] = documentName;
-                    if (!images[key]) {
-                        images[key] = imageObj;
-                    }
-                }
-            }
-        });
-        assetsPageName += " from Layers";
-    }
-    if (identifier == "img-script-images" || identifier == "img-script-all") {
-        layersImages.forEach((layer) => {
-            var key = String(layer.image.id);
-            let imageObj = {};
-            imageObj["name"] = normalizePaths(layer.name) + "-" + key;
-            imageObj["layer"] = layer.image;
-            imageObj["parent"] = documentName;
-            if (!images[key]) {
-                images[key] = imageObj;
-            }
-        });
-        assetsPageName += " from Images";
-    }
-    if (identifier == "img-script-symbols" || identifier == "img-script-all") {
-        layersSymbols.forEach((layer) => {
-            var overrides = layer.overrides.filter(function (o) {
-                return (
-                    // o.editable &&
-                    ["symbolID", "stringValue", "image"].includes(o.property)
-                );
-            });
-            var dataGroupByPath = { "": data };
-            for (const o of overrides) {
-                var pathComponents = o.path.split("/");
-                pathComponents.pop();
-                var parentPath = pathComponents.join("/");
-                if (o.property == "symbolID") {
-                    dataGroupByPath[o.path] = {};
-                    if (dataGroupByPath[parentPath]) {
-                        dataGroupByPath[parentPath][o.affectedLayer.name] =
-                            dataGroupByPath[o.path];
-                    }
-                    continue;
-                }
-                if (o.property == "image") {
-                    var key = String(o.value.id);
-                    let imageObj = {};
-                    imageObj["name"] =
-                        normalizePaths(o.affectedLayer.name) + "-" + key;
-                    imageObj["layer"] = o.value;
-                    imageObj["parent"] = documentName;
-                    if (!images[key]) {
-                        images[key] = imageObj;
-                    }
-                }
-            }
-        });
-        assetsPageName += " from Source Symbols";
-    }
-    if (
-        identifier == "img-script-instances" ||
-        identifier == "img-script-all"
-    ) {
-        layersSymbolInstances.forEach((layer) => {
-            var overrides = layer.overrides.filter(function (o) {
-                return (
-                    // o.editable &&
-                    ["symbolID", "stringValue", "image"].includes(o.property)
-                );
-            });
-            var dataGroupByPath = { "": data };
-            for (const o of overrides) {
-                var pathComponents = o.path.split("/");
-                pathComponents.pop();
-                var parentPath = pathComponents.join("/");
-                if (o.property == "symbolID") {
-                    dataGroupByPath[o.path] = {};
-                    if (dataGroupByPath[parentPath]) {
-                        dataGroupByPath[parentPath][o.affectedLayer.name] =
-                            dataGroupByPath[o.path];
-                    }
-                    continue;
-                }
-                if (o.property == "image") {
-                    var key = String(o.value.id);
-                    let imageObj = {};
-                    imageObj["name"] =
-                        normalizePaths(o.affectedLayer.name) + "-" + key;
-                    imageObj["layer"] = o.value;
-                    imageObj["parent"] = documentName;
-                    if (!images[key]) {
-                        images[key] = imageObj;
-                    }
-                }
-            }
-        });
-        assetsPageName += " from Overrides";
-    }
-    if (identifier == "img-script-all") {
-        assetsPageName += " from all Layers";
-    }
+        let lineoutPage = findOrCreatePage(document, lineoutPageName);
+        let layoutArtboard = selectedArtboard.duplicate();
+        layoutArtboard.parent = lineoutPage;
 
-    var imagesData = Object.values(images);
-    if (imagesData.length > 0) {
-        const assetsPage = assetsPageName;
-        var page = selectPage(findOrCreatePage(document, assetsPage));
-        let posX = 0;
-        let posY = 0;
-        imagesData.forEach(function (image) {
-            exportImageDataAsPng(
-                image.layer,
-                imagesFolder + "/" + String(image.name) + ".png"
-            );
-            var imgLayer = new sketch.Image({
-                name: image.name,
-                image: image.layer,
-                frame: {
-                    x: posX,
-                    y: posY,
-                    width: 100,
-                    height: 100,
-                },
-                parent: document.selectedPage,
-            });
-            imgLayer.resizeToOriginalSize();
-            imgLayer.exportFormats = [
-                {
-                    type: "ExportFormat",
-                    fileFormat: "png",
-                    suffix: "",
-                    size: "1x",
-                },
-                {
-                    type: "ExportFormat",
-                    fileFormat: "png",
-                    suffix: "@2x",
-                    size: "2x",
-                },
-                {
-                    type: "ExportFormat",
-                    fileFormat: "png",
-                    suffix: "@3x",
-                    size: "3x",
-                },
-                {
-                    type: "ExportFormat",
-                    fileFormat: "svg",
-                    suffix: "",
-                    size: "1x",
-                },
-                {
-                    type: "ExportFormat",
-                    fileFormat: "pdf",
-                    suffix: "",
-                    size: "1x",
-                },
-            ];
+        if (layoutArtboard.type === "SymbolMaster") {
+            layoutArtboard = layoutArtboard.toArtboard();
+        }
 
-            let imgArtboard = createArtboard(
-                document.selectedPage,
-                posX,
-                posY,
-                imgLayer.frame.width,
-                imgLayer.frame.height,
-                imgLayer.name
-            );
-            imgLayer.parent = imgArtboard;
-            imgLayer.frame.x = 0;
-            imgLayer.frame.y = 0;
-            document.centerOnLayer(imgLayer);
-        });
+        let outlines = outlineLayers(layoutArtboard, layoutArtboard);
 
-        organizeLayersInPage(document.selectedPage);
-        const drawView = doc.contentDrawView();
-        const curZoom = drawView.zoomValue();
-        const curScroll = drawView.scrollOrigin();
-        curScroll.x = 0;
-        curScroll.y = 0;
-        drawView.setScrollOrigin(curScroll);
-
-        sketch.UI.alert(
-            "Images asset extraction complete",
-            "You can find your image assets in your Desktop, in a folder named " +
-                "Images-" +
-                normalizePaths(documentName) +
-                "\n\n" +
-                "All the images are available into the page Exportable Assets"
-        );
+        organizeLayersInPage(lineoutPage);
+        selectPage(lineoutPage);
+        layoutArtboard.selected = true;
+        layoutArtboard.flowStartPoint = false;
+        setTimeout(function () {}, 100);
+        document.sketchObject.contentDrawView().centerLayersInCanvas();
+        document.centerOnLayer(layoutArtboard);
     } else {
-        sketch.UI.alert(
-            "No Image assets found",
-            "There are no images of the type you selected into your document"
-        );
+        sketch.UI.message("☝️ Please, select an Artboard");
     }
 }
 
 // **************************************
 // Script functions
 // **************************************
+
+function outlineLayers(layer, parentLayer = layer) {
+    let parent = parentLayer;
+    layer.layers.forEach((layer) => {
+        if (layer.type === "Group") {
+            layer.style.fills = [];
+            layer.flow = undefined;
+            if (layer.layers.length > 0) {
+                layer.layers.forEach((groupLayer) => {
+                    if (groupLayer.type === "Group") {
+                        groupLayer.style.fills = [];
+                        groupLayer.flow = undefined;
+                        outlineLayers(groupLayer, groupLayer);
+                    } else {
+                        outline(groupLayer, layer);
+                    }
+                });
+            }
+        } else {
+            outline(layer, parent);
+        }
+    });
+}
+
+function outline(layer, parentLayer) {
+    if (layer.type === "SymbolInstance") {
+        let groupLayer = layer.detach({
+            recursively: true,
+        });
+        outlineLayers(groupLayer, groupLayer);
+    } else if (layer.type === "HotSpot") {
+        layer.remove();
+    } else if (layer.type === "Text") {
+        let newX = layer.frame.x;
+        let newY = layer.frame.y;
+        let newReactangle = createShapePath(
+            parentLayer,
+            newX,
+            newY,
+            layer.frame.width,
+            layer.frame.height,
+            "#ffffff00",
+            linesColor,
+            layer.name
+        );
+        newReactangle.parent = parentLayer;
+        newReactangle.style.fills = [];
+        layer.remove();
+    } else if (layer.type === "ShapePath" || layer.type === "Shape") {
+        layer.sharedStyle = "";
+        layer.style.fills = [];
+        layer.style.borders = [
+            {
+                color: linesColor,
+                fillType: Style.FillType.Color,
+                position: Style.BorderPosition.Center,
+            },
+        ];
+    }
+}
 
 function createArtboard(parentLayer, x, y, width, height, name) {
     let Artboard = sketch.Artboard;
@@ -273,32 +127,35 @@ function createArtboard(parentLayer, x, y, width, height, name) {
 
     return artboard;
 }
-function createFolder(folder) {
-    try {
-        if (!fs.existsSync(folder)) {
-            fs.mkdirSync(folder);
-        }
-    } catch (err) {
-        console.error(err);
+
+function createShapePath(
+    parentLayer,
+    x,
+    y,
+    width,
+    height,
+    background,
+    border,
+    name
+) {
+    let borders = [];
+    if (border !== "") {
+        borders = border;
     }
-}
+    let ShapePath = sketch.ShapePath;
+    let newShape = new ShapePath({
+        parent: parentLayer,
+        frame: {
+            x: x,
+            y: y,
+            width: width,
+            height: height,
+        },
+        style: { fills: [background], borders: [borders] },
+        name: name,
+    });
 
-function exportImageDataAsPng(imageData, path) {
-    var rep = NSBitmapImageRep.imageRepWithData(imageData.nsdata);
-    var png = rep.representationUsingType_properties(
-        NSBitmapImageFileTypePNG,
-        {}
-    );
-    png.writeToFile_atomically(path, "YES");
-}
-
-function exportImageDataAsJpg(imageData, path, quality) {
-    var rep = NSBitmapImageRep.imageRepWithData(imageData.nsdata);
-    var jpg = rep.representationUsingType_properties(
-        NSBitmapImageFileTypeJPEG,
-        { NSImageCompressionFactor: quality || 0.75 }
-    );
-    jpg.writeToFile_atomically(path, "YES");
+    return newShape;
 }
 
 function normalizePaths(path) {

@@ -1,5 +1,5 @@
 # build artefacts
-sketch-tokens-exporter.sketchplugin
+*.sketchplugin
 
 # npm
 node_modules
