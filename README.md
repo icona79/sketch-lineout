@@ -1,14 +1,12 @@
-# Sketch images assets manager
+# Sketch Lineout
 
-The plugin exports all the images available into your document (`images`, `fills images`, `symbol and symbol instances images`).
-All the images are automatically added to a new page called `Exportable Assets` and set as exportable.
-The Format export settings are set as:
+The plugin generates a new `Lineout` page which will contain the selected Artboard's or Source Symbol's copies. THese copies will be lineout copies of the original artboard:
 
--   "png","1x"
--   "png","2x","@2x"
--   "png","3x","@3x"
--   "svg"
--   "pdf","1x"
+-   all the symbol instances will bedetached
+-   all the shapes will have a red border only
+-   all the text layers will be converted in a rectangle shape of the same size
+
+All the item names will be maintained.
 
 ## Aknowledgments
 
@@ -16,7 +14,7 @@ Thanks [Francesco Bertocci](https://github.com/fbmore) for all their support :pr
 
 ## Installation
 
--   [Download](../../releases/latest/download/sketch-images-assets-manager.sketchplugin.zip) the latest release of the plugin
+-   [Download](../../releases/latest/download/sketch-lineout.sketchplugin.zip) the latest release of the plugin
 -   Un-zip
 -   Double-click on sketch-tokens-exporter.sketchplugin
 
