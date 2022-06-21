@@ -17,7 +17,8 @@ if (document.path) {
 var { isNativeObject } = require("util");
 
 var lineoutPageName = "Lineouts";
-var linesColor = "#FF0000";
+var linesColor = "#FF54ED";
+var linesColorText = "#3DB7E9";
 
 export default function () {
     let selectedArtboard = document.selectedLayers.layers[0];
@@ -93,11 +94,22 @@ function outline(layer, parentLayer) {
             layer.frame.width,
             layer.frame.height,
             "#ffffff00",
-            linesColor,
+            linesColorText,
             layer.name
         );
         newReactangle.parent = parentLayer;
         newReactangle.style.fills = [];
+        let newDescription = createText(
+            parentLayer,
+            newX,
+            newY,
+            100,
+            19,
+            "Label - " + layer.name,
+            layer.name,
+            linesColorText
+        );
+        newDescription.frame.y = labelPosition(newDescription);
         layer.remove();
     } else if (layer.type === "ShapePath" || layer.type === "Shape") {
         layer.sharedStyle = "";
@@ -109,6 +121,19 @@ function outline(layer, parentLayer) {
                 position: Style.BorderPosition.Center,
             },
         ];
+        if (layer.type === "ShapePath") {
+            let newDescription = createText(
+                parentLayer,
+                layer.frame.x,
+                layer.frame.y,
+                100,
+                19,
+                "Label - " + layer.name,
+                layer.name,
+                linesColor
+            );
+            newDescription.frame.y = labelPosition(newDescription);
+        }
     }
 }
 
@@ -156,6 +181,51 @@ function createShapePath(
     });
 
     return newShape;
+}
+
+function createText(
+    parentLayer,
+    x = 0,
+    y = 0,
+    width = 100,
+    height = 21,
+    name,
+    content,
+    color
+) {
+    let Text = sketch.Text;
+    let newText = new Text({
+        parent: parentLayer,
+        text: content,
+        frame: {
+            x: x,
+            y: y,
+            width: width,
+            height: height,
+        },
+        style: { textColor: color, alignment: "left" },
+        name: name,
+    });
+    newText.adjustToFit();
+    return newText;
+}
+
+function labelPosition(item) {
+    let defaultY = item.frame.y;
+    let parentHeight = item.parent.frame.height;
+    let artboard = item.getParentArtboard();
+    // console.log(item.name);
+    let newFrame = item.frame.changeBasis({
+        from: item.parent,
+        to: item.getParentArtboard(),
+    });
+    let newPosition = newFrame.y - item.frame.height;
+    let newY = item.frame.y - item.frame.height;
+    if (newPosition < 0) {
+        newY = defaultY + parentHeight;
+    }
+    // console.log(newY);
+    return newY;
 }
 
 function normalizePaths(path) {
