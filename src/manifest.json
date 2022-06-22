@@ -33,8 +33,7 @@
                 "actions": {
                     "Shutdown": "onShutdown"
                 }
-            },
-            "shortcut": "option shift cmd c"
+            }
         },
         {
             "name": "✏️ Sketch Lineout with illustrations, no labels",
