@@ -35,6 +35,11 @@ export default function () {
         if (layoutArtboard.type === "SymbolMaster") {
             layoutArtboard = layoutArtboard.toArtboard();
         }
+        layoutArtboard.background = {
+            enabled: true,
+            includedInExport: true,
+            color: "#ffffffff",
+        };
 
         let outlines = outlineLayers(layoutArtboard, layoutArtboard);
 
