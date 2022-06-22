@@ -18,6 +18,9 @@ var { isNativeObject } = require("util");
 
 var lineoutPageName = "Lineouts";
 var linesColor = "#FF54ED";
+var fontSize = 8;
+var fontWeight = 5;
+
 var linesColorText = "#3DB7E9";
 
 export default function () {
@@ -101,7 +104,7 @@ function outline(layer, parentLayer) {
         newReactangle.style.fills = [];
         let newDescription = createText(
             parentLayer,
-            newX,
+            (newX + 2),
             newY,
             100,
             19,
@@ -124,7 +127,7 @@ function outline(layer, parentLayer) {
         if (layer.type === "ShapePath") {
             let newDescription = createText(
                 parentLayer,
-                layer.frame.x,
+                layer.frame.x + 2,
                 layer.frame.y,
                 100,
                 19,
@@ -203,7 +206,7 @@ function createText(
             width: width,
             height: height,
         },
-        style: { textColor: color, alignment: "left" },
+        style: { textColor: color, alignment: "left", fontSize: fontSize, fontWeight: fontWeight  },
         name: name,
     });
     newText.adjustToFit();
@@ -215,15 +218,18 @@ function labelPosition(item) {
     let parentHeight = item.parent.frame.height;
     let artboard = item.getParentArtboard();
     // console.log(item.name);
-    let newFrame = item.frame.changeBasis({
-        from: item.parent,
-        to: item.getParentArtboard(),
-    });
-    let newPosition = newFrame.y - item.frame.height;
-    let newY = item.frame.y - item.frame.height;
-    if (newPosition < 0) {
-        newY = defaultY + parentHeight;
-    }
+    // let newFrame = item.frame.changeBasis({
+    //     from: item.parent,
+    //     to: item.getParentArtboard(),
+    // });
+    // let newPosition = newFrame.y - item.frame.height;
+    let newPosition = item.frame.y;
+    // let newPosition = item.frame.height;
+    let newY = item.frame.y 
+    //- item.frame.height;
+    // if (newPosition < 0) {
+    //     newY = defaultY + parentHeight;
+    // }
     // console.log(newY);
     return newY;
 }
