@@ -3,8 +3,42 @@
     "bundleVersion": 1,
     "commands": [
         {
-            "name": "🔲 Sketch Lineout",
+            "name": "✏️ Sketch Lineout with labels",
+            "identifier": "sl-script-label",
+            "script": "./script.js",
+            "handlers": {
+                "run": "onRun",
+                "actions": {
+                    "Shutdown": "onShutdown"
+                }
+            }
+        },
+        {
+            "name": "✍️ Sketch Lineout with illustrations and labels",
+            "identifier": "sl-script-shapes-label",
+            "script": "./script.js",
+            "handlers": {
+                "run": "onRun",
+                "actions": {
+                    "Shutdown": "onShutdown"
+                }
+            }
+        },
+        {
+            "name": "🔳 Sketch Lineout no labels",
             "identifier": "sl-script",
+            "script": "./script.js",
+            "handlers": {
+                "run": "onRun",
+                "actions": {
+                    "Shutdown": "onShutdown"
+                }
+            },
+            "shortcut": "option shift cmd c"
+        },
+        {
+            "name": "✏️ Sketch Lineout with illustrations, no labels",
+            "identifier": "sl-script-shapes",
             "script": "./script.js",
             "handlers": {
                 "run": "onRun",
@@ -16,8 +50,12 @@
     ],
     "menu": {
         "title": "🔲 Sketch Lineout",
-        "items": ["sl-script"],
-        "isRoot": true
+        "items": [
+            "sl-script-label",
+            "sl-script-shapes-label",
+            "sl-script",
+            "sl-script-shapes"
+        ]
     },
     "icon": "icon.png"
 }
