@@ -383,10 +383,9 @@ function containsOnly(array1, array2) {
 }
 
 function resetStyle(layer) {
-    if (layer.style.fills) {
-        layer.style.fills = [];
-    }
+    layer.style.fills = [];
     layer.style.borders = [];
     layer.style.shadows = [];
     layer.style.innerShadows = [];
+    layer.style.blur = [];
 }
