@@ -1,6 +1,6 @@
 # Sketch Lineout
 
-[![Sketch lineout plugin preview](https://img.youtube.com/vi/V6C1RE6CGdQ/0.jpg)](https://youtu.be/V6C1RE6CGdQ)
+[![Sketch lineout plugin preview](https://img.youtube.com/vi/V6C1RE6CGdQ/0.jpg)]
 
 The plugin generates a new `Lineout` page which will contain the selected Artboard's or Source Symbol's copies. THese copies will be lineout copies of the original artboard:
 
