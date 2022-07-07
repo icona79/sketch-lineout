@@ -188,11 +188,11 @@ export default function () {
     }
 
     function outline(layer, parentLayer, isShape) {
-        layer.sharedStyle = "";
-        resetStyle(layer);
         if (layer.type === "HotSpot") {
             layer.remove();
         } else if (layer.type === "Text") {
+            layer.sharedStyle = "";
+            resetStyle(layer);
             let newX = layer.frame.x;
             let newY = layer.frame.y;
             let newReactangle = createShapePath(
@@ -218,7 +218,7 @@ export default function () {
             layer.remove();
         } else if (layer.type === "ShapePath") {
             layer.sharedStyle = "";
-            layer.style.fills = [];
+            resetStyle(layer);
             layer.style.borders = [
                 {
                     color: linesColorShapePath,
@@ -236,6 +236,8 @@ export default function () {
                 newDescription.frame.y = labelPosition(newDescription);
             }
         } else if (layer.type === "Shape" && identifier.includes("shapes")) {
+            layer.sharedStyle = "";
+            resetStyle(layer);
             layer.style.borders = [
                 {
                     color: linesColorShapePath,
@@ -254,7 +256,7 @@ export default function () {
             }
         } else if (layer.type === "Shape" && !identifier.includes("shapes")) {
             layer.sharedStyle = "";
-            layer.style.fills = [];
+            resetStyle(layer);
             let newX = layer.frame.x;
             let newY = layer.frame.y;
 
