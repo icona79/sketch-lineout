@@ -20,6 +20,7 @@ var lineoutPageName = "Lineouts";
 var linesColorShapePath = "#FF54ED";
 var linesColorText = "#3DB7E9";
 var linesColorShape = "#F748A5";
+var linesColorGroups = "#00B19F";
 var fontSize = 8;
 var fontWeight = 5;
 
@@ -66,54 +67,129 @@ export default function () {
 
         let parent = parentLayer;
 
-        layer.layers.forEach((layer) => {
-            if (layer.type === "Group" || layer.type === "SymbolInstance") {
-                if (layer.type === "SymbolInstance") {
-                    layer = layer.detach({
-                        recursively: true,
-                    });
-                }
-                isShape = isShapeLayer(layer, isShape);
-                layer.sharedStyle = "";
-                resetStyle(layer);
-                layer.flow = undefined;
-
-                if (layer.layers.length > 0) {
-                    layer.layers.forEach((groupLayer) => {
-                        if (
-                            groupLayer.type === "Group" ||
-                            groupLayer.type === "SymbolInstance"
-                        ) {
-                            if (groupLayer.type === "SymbolInstance") {
-                                groupLayer = groupLayer.detach({
-                                    recursively: true,
-                                });
-                            }
-                            groupLayer.sharedStyle = "";
-                            resetStyle(groupLayer);
-                            groupLayer.flow = undefined;
-                            outlineLayers(groupLayer, groupLayer, isShape);
-                        } else {
-                            outline(groupLayer, layer, isShape);
+        if (layer.layers.length > 0) {
+            if (identifier.includes("group")) {
+                layer.layers.forEach((layer) => {
+                    if (
+                        layer.type === "Group" ||
+                        layer.type === "SymbolInstance"
+                    ) {
+                        let group = layer.duplicate();
+                        if (layer.type === "SymbolInstance") {
+                            group = layer.detach({
+                                recursively: true,
+                            });
                         }
-                    });
-
-                    if (identifier.includes("label") && isShape) {
-                        let newDescription = newLabel(
-                            layer,
-                            parent,
-                            linesColorShapePath
-                        );
-                        newDescription.frame.y -= newDescription.frame.height;
+                        layer.sharedStyle = "";
+                        resetStyle(layer);
+                        layer.flow = undefined;
+                        if (group.layers.length > 0) {
+                            group.layers.forEach((groupLayer) => {
+                                if (
+                                    groupLayer.type === "Group" ||
+                                    groupLayer.type === "SymbolInstance"
+                                ) {
+                                    if (groupLayer.type === "SymbolInstance") {
+                                        let symbolInstance =
+                                            groupLayer.duplicate();
+                                        outlineGroup(symbolInstance, group);
+                                        symbolInstance.remove();
+                                        if (identifier.includes("label")) {
+                                            let newDescription = newLabel(
+                                                symbolInstance,
+                                                group,
+                                                linesColorGroups
+                                            );
+                                            newDescription.frame.y -=
+                                                newDescription.frame.height;
+                                        }
+                                        groupLayer = groupLayer.detach({
+                                            recursively: true,
+                                        });
+                                    }
+                                    groupLayer.sharedStyle = "";
+                                    resetStyle(groupLayer);
+                                    groupLayer.flow = undefined;
+                                    outlineLayers(groupLayer, group);
+                                }
+                            });
+                        }
+                        outlineGroup(group, parent);
+                        if (identifier.includes("label")) {
+                            let newDescription = newLabel(
+                                layer,
+                                parent,
+                                linesColorGroups
+                            );
+                            newDescription.frame.y -=
+                                newDescription.frame.height;
+                        }
+                        group.remove();
+                    } else {
+                        layer.remove();
                     }
-                }
+                });
             } else {
-                outline(layer, parent, isShape);
+                layer.layers.forEach((layer) => {
+                    if (
+                        layer.type === "Group" ||
+                        layer.type === "SymbolInstance"
+                    ) {
+                        if (layer.type === "SymbolInstance") {
+                            layer = layer.detach({
+                                recursively: true,
+                            });
+                        }
+                        isShape = isShapeLayer(layer, isShape);
+                        layer.sharedStyle = "";
+                        resetStyle(layer);
+                        layer.flow = undefined;
+
+                        if (layer.layers.length > 0) {
+                            layer.layers.forEach((groupLayer) => {
+                                if (
+                                    groupLayer.type === "Group" ||
+                                    groupLayer.type === "SymbolInstance"
+                                ) {
+                                    if (groupLayer.type === "SymbolInstance") {
+                                        groupLayer = groupLayer.detach({
+                                            recursively: true,
+                                        });
+                                    }
+                                    groupLayer.sharedStyle = "";
+                                    resetStyle(groupLayer);
+                                    groupLayer.flow = undefined;
+                                    outlineLayers(
+                                        groupLayer,
+                                        groupLayer,
+                                        isShape
+                                    );
+                                } else {
+                                    outline(groupLayer, layer, isShape);
+                                }
+                            });
+
+                            if (identifier.includes("label") && isShape) {
+                                let newDescription = newLabel(
+                                    layer,
+                                    parent,
+                                    linesColorShapePath
+                                );
+                                newDescription.frame.y -=
+                                    newDescription.frame.height;
+                            }
+                        }
+                    } else {
+                        outline(layer, parent, isShape);
+                    }
+                });
             }
-        });
+        }
     }
 
     function outline(layer, parentLayer, isShape) {
+        layer.sharedStyle = "";
+        resetStyle(layer);
         if (layer.type === "HotSpot") {
             layer.remove();
         } else if (layer.type === "Text") {
@@ -160,8 +236,6 @@ export default function () {
                 newDescription.frame.y = labelPosition(newDescription);
             }
         } else if (layer.type === "Shape" && identifier.includes("shapes")) {
-            layer.sharedStyle = "";
-            layer.style.fills = [];
             layer.style.borders = [
                 {
                     color: linesColorShapePath,
@@ -216,6 +290,28 @@ export default function () {
             }
             layer.remove();
         }
+    }
+
+    function outlineGroup(layer, parentLayer) {
+        let newX = layer.frame.x;
+        let newY = layer.frame.y;
+        let newReactangle = createShapePath(
+            parentLayer,
+            newX,
+            newY,
+            layer.frame.width,
+            layer.frame.height,
+            "#ffffff00",
+            linesColorText,
+            layer.name
+        );
+        newReactangle.style.fills = [];
+        if (identifier.includes("label")) {
+            let newDescription = newLabel(layer, parentLayer, linesColorText);
+            newDescription.frame.y = labelPosition(newDescription);
+        }
+        newReactangle.parent = parentLayer;
+        layer.remove();
     }
 
     function isShapeLayer(layer, isShape) {

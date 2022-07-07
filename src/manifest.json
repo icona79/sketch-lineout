@@ -45,6 +45,28 @@
                     "Shutdown": "onShutdown"
                 }
             }
+        },
+        {
+            "name": "🎁 Sketch Lineout groups with labels",
+            "identifier": "sl-script-group-label",
+            "script": "./script.js",
+            "handlers": {
+                "run": "onRun",
+                "actions": {
+                    "Shutdown": "onShutdown"
+                }
+            }
+        },
+        {
+            "name": "📦 Sketch Lineout groups, no labels",
+            "identifier": "sl-script-group",
+            "script": "./script.js",
+            "handlers": {
+                "run": "onRun",
+                "actions": {
+                    "Shutdown": "onShutdown"
+                }
+            }
         }
     ],
     "menu": {
@@ -53,7 +75,9 @@
             "sl-script-label",
             "sl-script-shapes-label",
             "sl-script",
-            "sl-script-shapes"
+            "sl-script-shapes",
+            "sl-script-group-label",
+            "sl-script-group"
         ]
     },
     "icon": "icon.png"
