@@ -1,7 +1,7 @@
 {
     "name": "sketch-lineout",
     "description": "Lineout your artboards for handoff preview",
-    "version": "3.4.0",
+    "version": "3.4.1",
     "engines": {
         "sketch": ">=3.0"
     },
